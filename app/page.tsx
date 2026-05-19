@@ -16,11 +16,11 @@ import { WORDLE_ROWS, WORD_LEN } from "@/lib/pattern";
 const emptyRow = (): BoardRow => ({ letters: [], colors: [], state: "empty" });
 const emptyBoard = (): BoardRow[] => Array.from({ length: WORDLE_ROWS }, emptyRow);
 
-const REVEAL_MS = 1700;
-const ROW_STAGGER_MS = 1200;
-const TYPE_LETTER_MS = 110;
-const TYPE_SUBMIT_PAUSE_MS = 280;
-const TYPE_NEXT_ROW_PAUSE_MS = 220;
+const REVEAL_MS = 1100;
+const ROW_STAGGER_MS = 1450;
+const TYPE_LETTER_MS = 210;
+const TYPE_SUBMIT_PAUSE_MS = 450;
+const TYPE_NEXT_ROW_PAUSE_MS = 450;
 
 type ApiResponse = {
   solution: string;
