@@ -43,3 +43,5 @@ next-env.d.ts
 # local screenshots / playwright artifacts
 /initial.png
 /.playwright-mcp/
+
+.vercel
