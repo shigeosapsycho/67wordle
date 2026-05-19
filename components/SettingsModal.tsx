@@ -54,23 +54,9 @@ export function SettingsModal({
   return (
     <Modal open={open} onClose={onClose} title="Settings">
       <Toggle label="Dark theme" value={dark} onChange={setDark} />
-      <Toggle
-        label="Yellows count for 67"
-        description="When solving the 67 pattern, yellow tiles also count as 'on' pixels (in addition to greens). Makes more days solvable."
-        value={yellowsCount}
-        onChange={setYellowsCount}
-      />
-      <Toggle
-        label="Show answer at end"
-        value={revealAnswer}
-        onChange={setRevealAnswer}
-      />
-      <Toggle
-        label="Instant animation"
-        description="On: each word appears in full, then flips. Off: letters are typed one at a time and 'Enter' is pressed."
-        value={instantAnimation}
-        onChange={setInstantAnimation}
-      />
+      <Toggle label="Yellow tiles toggle" value={yellowsCount} onChange={setYellowsCount} />
+      <Toggle label="Show answer at end" value={revealAnswer} onChange={setRevealAnswer} />
+      <Toggle label="Instant animation" value={instantAnimation} onChange={setInstantAnimation} />
     </Modal>
   );
 }
