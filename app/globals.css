@@ -69,7 +69,6 @@ body { font-family: var(--font-geist-sans), system-ui, sans-serif; }
 
 @keyframes bounce {
   0%, 100% { transform: translateY(0); }
-  40% { transform: translateY(-12px); }
-  60% { transform: translateY(-6px); }
+  50% { transform: translateY(-28px); }
 }
-.tile-bounce { animation: bounce 700ms ease-in-out; }
+.tile-bounce { animation: bounce 600ms ease-out; }
