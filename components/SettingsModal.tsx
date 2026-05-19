@@ -62,13 +62,12 @@ export function SettingsModal({
       />
       <Toggle
         label="Show answer at end"
-        description="After the 5 pattern guesses, play the real Wordle answer as a final all-green row."
         value={revealAnswer}
         onChange={setRevealAnswer}
       />
       <Toggle
         label="Instant animation"
-        description="On: each word appears in full, then flips. Off: letters are typed one at a time and 'Enter' is pressed, like a real player."
+        description="On: each word appears in full, then flips. Off: letters are typed one at a time and 'Enter' is pressed."
         value={instantAnimation}
         onChange={setInstantAnimation}
       />
