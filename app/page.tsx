@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Header } from "@/components/Header";
 import { Board, type BoardRow } from "@/components/Board";
 import { HelpModal } from "@/components/HelpModal";
@@ -33,7 +33,6 @@ export default function Page() {
   const [rows, setRows] = useState<BoardRow[]>(emptyBoard);
   const [toast, setToast] = useState<string | null>(null);
   const [animating, setAnimating] = useState(false);
-  const [solutionGuesses, setSolutionGuesses] = useState<(string | null)[]>([]);
   const [solverFoundAll, setSolverFoundAll] = useState(true);
 
   const [showHelp, setShowHelp] = useState(false);
@@ -42,6 +41,7 @@ export default function Page() {
 
   const [dark, setDark] = useState(false);
   const [yellowsCount, setYellowsCount] = useState(true);
+  const [revealAnswer, setRevealAnswer] = useState(false);
 
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -62,6 +62,7 @@ export default function Page() {
       setDark(stored ? stored === "dark" : prefers);
       const yc = localStorage.getItem("yellowsCount");
       setYellowsCount(yc === null ? true : yc === "1");
+      setRevealAnswer(localStorage.getItem("revealAnswer") === "1");
     } catch {}
     try {
       setShowHelp(!localStorage.getItem("seenHelp"));
@@ -75,6 +76,9 @@ export default function Page() {
   useEffect(() => {
     try { localStorage.setItem("yellowsCount", yellowsCount ? "1" : "0"); } catch {}
   }, [yellowsCount]);
+  useEffect(() => {
+    try { localStorage.setItem("revealAnswer", revealAnswer ? "1" : "0"); } catch {}
+  }, [revealAnswer]);
 
   useEffect(() => {
     const date = localDateISO();
@@ -90,13 +94,12 @@ export default function Page() {
   }, []);
 
   const runSolution = useCallback(
-    (answer: string, useYellows: boolean) => {
+    (answer: string, useYellows: boolean, showAnswer: boolean) => {
       runIdRef.current += 1;
       const myRun = runIdRef.current;
       clearAnimTimers();
 
       const result = findGuessesFor67(answer, GUESS_LIST, useYellows);
-      setSolutionGuesses(result.guesses);
       setSolverFoundAll(result.allFound);
 
       if (!result.allFound) {
@@ -111,9 +114,11 @@ export default function Page() {
       setRows(emptyBoard());
       setAnimating(true);
 
-      const guesses = result.guesses;
+      const sequence: (string | null)[] = result.guesses.slice();
+      if (showAnswer) sequence.push(answer);
+
       let delay = 250;
-      guesses.forEach((g, i) => {
+      sequence.forEach((g, i) => {
         const t = setTimeout(() => {
           if (runIdRef.current !== myRun) return;
           setRows((prev) => {
@@ -143,26 +148,21 @@ export default function Page() {
 
   useEffect(() => {
     if (!today) return;
-    runSolution(today.solution, yellowsCount);
+    runSolution(today.solution, yellowsCount, revealAnswer);
     return () => {
       clearAnimTimers();
     };
-  }, [today, yellowsCount, runSolution, clearAnimTimers]);
+  }, [today, yellowsCount, revealAnswer, runSolution, clearAnimTimers]);
 
   const replay = useCallback(() => {
     if (!today) return;
-    runSolution(today.solution, yellowsCount);
-  }, [today, yellowsCount, runSolution]);
+    runSolution(today.solution, yellowsCount, revealAnswer);
+  }, [today, yellowsCount, revealAnswer, runSolution]);
 
   const onHelpClose = useCallback(() => {
     setShowHelp(false);
     try { localStorage.setItem("seenHelp", "1"); } catch {}
   }, []);
-
-  const filledGuesses = useMemo(
-    () => solutionGuesses.filter((g): g is string => !!g),
-    [solutionGuesses],
-  );
 
   return (
     <>
@@ -193,13 +193,6 @@ export default function Page() {
           >
             {animating ? "Solving…" : "Replay 67"}
           </button>
-          {today && filledGuesses.length > 0 && !animating && (
-            <div className="mt-3 grid grid-cols-1 gap-1 text-center font-mono text-sm uppercase tracking-[0.25em] opacity-80">
-              {filledGuesses.map((g, i) => (
-                <div key={i}>{g}</div>
-              ))}
-            </div>
-          )}
           {today && !solverFoundAll && !yellowsCount && (
             <button
               onClick={() => setYellowsCount(true)}
@@ -219,6 +212,8 @@ export default function Page() {
         setDark={setDark}
         yellowsCount={yellowsCount}
         setYellowsCount={setYellowsCount}
+        revealAnswer={revealAnswer}
+        setRevealAnswer={setRevealAnswer}
       />
       <Modal open={showInfo} onClose={() => setShowInfo(false)} title="Today">
         {today && (

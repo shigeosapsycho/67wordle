@@ -9,6 +9,8 @@ type Props = {
   setDark: (v: boolean) => void;
   yellowsCount: boolean;
   setYellowsCount: (v: boolean) => void;
+  revealAnswer: boolean;
+  setRevealAnswer: (v: boolean) => void;
 };
 
 function Toggle({
@@ -44,7 +46,7 @@ function Toggle({
 }
 
 export function SettingsModal({
-  open, onClose, dark, setDark, yellowsCount, setYellowsCount,
+  open, onClose, dark, setDark, yellowsCount, setYellowsCount, revealAnswer, setRevealAnswer,
 }: Props) {
   return (
     <Modal open={open} onClose={onClose} title="Settings">
@@ -54,6 +56,12 @@ export function SettingsModal({
         description="When solving the 67 pattern, yellow tiles also count as 'on' pixels (in addition to greens). Makes more days solvable."
         value={yellowsCount}
         onChange={setYellowsCount}
+      />
+      <Toggle
+        label="Show answer at end"
+        description="After the 5 pattern guesses, play the real Wordle answer as a final all-green row."
+        value={revealAnswer}
+        onChange={setRevealAnswer}
       />
     </Modal>
   );
