@@ -45,7 +45,7 @@ export default function Page() {
   const [dark, setDark] = useState(false);
   const [yellowsCount, setYellowsCount] = useState(true);
   const [revealAnswer, setRevealAnswer] = useState(false);
-  const [instantAnimation, setInstantAnimation] = useState(true);
+  const [instantAnimation, setInstantAnimation] = useState(false);
 
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -68,7 +68,7 @@ export default function Page() {
       setYellowsCount(yc === null ? true : yc === "1");
       setRevealAnswer(localStorage.getItem("revealAnswer") === "1");
       const ia = localStorage.getItem("instantAnimation");
-      setInstantAnimation(ia === null ? true : ia === "1");
+      setInstantAnimation(ia === null ? false : ia === "1");
     } catch {}
     try {
       setShowHelp(!localStorage.getItem("seenHelp"));
