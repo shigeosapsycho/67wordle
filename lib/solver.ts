@@ -36,9 +36,18 @@ export function findGuessesFor67(
     let pick: string | null = null;
     for (const w of guessList) {
       if (used.has(w)) continue;
-      if (rowMatches(w, a, mask, yellowsCount)) {
+      if (rowMatches(w, a, mask, false)) {
         pick = w;
         break;
+      }
+    }
+    if (!pick && yellowsCount) {
+      for (const w of guessList) {
+        if (used.has(w)) continue;
+        if (rowMatches(w, a, mask, true)) {
+          pick = w;
+          break;
+        }
       }
     }
     if (pick) used.add(pick);

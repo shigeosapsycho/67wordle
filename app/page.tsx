@@ -173,7 +173,7 @@ export default function Page() {
         onSettings={() => setShowSettings(true)}
       />
       <main className="flex-1 flex flex-col items-center gap-4 py-4 px-2">
-        <div className="text-xs uppercase tracking-widest opacity-60">
+        <div className="text-xs uppercase tracking-widest opacity-60 text-center w-full">
           {today ? `Wordle #${today.daysSinceLaunch} · ${today.date}` : ""}
         </div>
         <div className="w-full flex-1 flex items-center justify-center">
