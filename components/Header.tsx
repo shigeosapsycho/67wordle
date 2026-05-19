@@ -21,11 +21,12 @@ function IconBtn({ label, onClick, children }: { label: string; onClick: () => v
 
 export function Header({ onHelp, onSolve, onStats, onSettings }: Props) {
   return (
-    <header className="border-b border-[var(--divider)] px-3 py-2 flex items-center justify-between">
-      <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight">
+    <header className="border-b border-[var(--divider)] px-3 py-2 grid grid-cols-[1fr_auto_1fr] items-center">
+      <div />
+      <h1 className="text-xl sm:text-2xl font-extrabold tracking-tight text-center">
         <span className="tabular-nums">67</span> Wordle
       </h1>
-      <div className="flex items-center gap-0.5">
+      <div className="flex items-center gap-0.5 justify-end">
         <IconBtn label="Replay 67" onClick={onSolve}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 18h6" />

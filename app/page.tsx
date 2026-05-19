@@ -203,6 +203,9 @@ export default function Page() {
           )}
         </div>
       </main>
+      <footer className="py-3 text-center text-xs opacity-60">
+        Made with <span aria-label="love" className="text-red-500">♥</span> by Beu
+      </footer>
       <Toast message={toast} />
       <HelpModal open={showHelp} onClose={onHelpClose} />
       <SettingsModal
