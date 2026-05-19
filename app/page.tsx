@@ -5,6 +5,7 @@ import { Header } from "@/components/Header";
 import { Board, type BoardRow } from "@/components/Board";
 import { HelpModal } from "@/components/HelpModal";
 import { SettingsModal } from "@/components/SettingsModal";
+import { CustomWordModal } from "@/components/CustomWordModal";
 import { Modal } from "@/components/Modal";
 import { Toast } from "@/components/Toast";
 import { scoreGuess } from "@/lib/wordle-state";
@@ -41,6 +42,8 @@ export default function Page() {
   const [showHelp, setShowHelp] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showInfo, setShowInfo] = useState(false);
+  const [showCustom, setShowCustom] = useState(false);
+  const [customWord, setCustomWord] = useState<string | null>(null);
 
   const [dark, setDark] = useState(false);
   const [yellowsCount, setYellowsCount] = useState(true);
@@ -227,18 +230,20 @@ export default function Page() {
     [clearAnimTimers, showToast],
   );
 
+  const effectiveAnswer = customWord ?? today?.solution ?? null;
+
   useEffect(() => {
-    if (!today) return;
-    runSolution(today.solution, yellowsCount, instantAnimation);
+    if (!effectiveAnswer) return;
+    runSolution(effectiveAnswer, yellowsCount, instantAnimation);
     return () => {
       clearAnimTimers();
     };
-  }, [today, yellowsCount, instantAnimation, runSolution, clearAnimTimers]);
+  }, [effectiveAnswer, yellowsCount, instantAnimation, runSolution, clearAnimTimers]);
 
   const replay = useCallback(() => {
-    if (!today) return;
-    runSolution(today.solution, yellowsCount, instantAnimation);
-  }, [today, yellowsCount, instantAnimation, runSolution]);
+    if (!effectiveAnswer) return;
+    runSolution(effectiveAnswer, yellowsCount, instantAnimation);
+  }, [effectiveAnswer, yellowsCount, instantAnimation, runSolution]);
 
   const onHelpClose = useCallback(() => {
     setShowHelp(false);
@@ -252,15 +257,21 @@ export default function Page() {
         onSolve={replay}
         onStats={() => setShowInfo(true)}
         onSettings={() => setShowSettings(true)}
+        onCustom={() => setShowCustom(true)}
+        customActive={!!customWord}
       />
       <main className="flex-1 flex flex-col items-center gap-4 py-4 px-2">
         <div className="text-xs uppercase tracking-widest opacity-60 text-center w-full">
-          {today ? `Wordle #${today.daysSinceLaunch} · ${today.date}` : ""}
+          {customWord
+            ? `Custom · ${customWord.toUpperCase()}`
+            : today
+              ? `Wordle #${today.daysSinceLaunch} · ${today.date}`
+              : ""}
         </div>
         <div className="w-full flex-1 flex items-center justify-center">
-          {loadErr ? (
+          {loadErr && !customWord ? (
             <div className="text-center text-sm opacity-80 p-6">{loadErr}</div>
-          ) : !today ? (
+          ) : !effectiveAnswer ? (
             <div className="text-center text-sm opacity-60 p-6">Loading today&apos;s Wordle…</div>
           ) : (
             <Board rows={rows} currentRow={WORDLE_ROWS} shakeRow={null} />
@@ -269,18 +280,26 @@ export default function Page() {
         <div className="w-full max-w-[420px] px-3">
           <button
             onClick={replay}
-            disabled={!today || animating}
+            disabled={!effectiveAnswer || animating}
             suppressHydrationWarning
             className="w-full py-3 rounded-md bg-[var(--correct)] text-white font-bold uppercase tracking-wider text-sm active:opacity-80 disabled:opacity-40"
           >
             <span suppressHydrationWarning>{animating ? "Solving…" : "Replay 67"}</span>
           </button>
-          {today && !solverFoundAll && !yellowsCount && (
+          {effectiveAnswer && !solverFoundAll && !yellowsCount && (
             <button
               onClick={() => setYellowsCount(true)}
               className="mt-3 w-full py-2 rounded-md border border-[var(--present)] text-[var(--fg)] font-semibold text-xs uppercase tracking-wider active:opacity-70"
             >
               Allow yellow tiles
+            </button>
+          )}
+          {customWord && (
+            <button
+              onClick={() => setCustomWord(null)}
+              className="mt-3 w-full py-2 rounded-md border border-[var(--tile-border-filled)] text-[var(--fg)] font-semibold text-xs uppercase tracking-wider active:opacity-70"
+            >
+              Back to today&apos;s Wordle
             </button>
           )}
         </div>
@@ -290,6 +309,13 @@ export default function Page() {
       </footer>
       <Toast message={toast} />
       <HelpModal open={showHelp} onClose={onHelpClose} />
+      <CustomWordModal
+        open={showCustom}
+        onClose={() => setShowCustom(false)}
+        current={customWord}
+        onApply={(w) => setCustomWord(w)}
+        onClear={() => setCustomWord(null)}
+      />
       <SettingsModal
         open={showSettings}
         onClose={() => setShowSettings(false)}
