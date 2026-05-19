@@ -22,7 +22,7 @@ export function Tile({ letter, color, state, index, celebrate }: Props) {
   return (
     <div
       className={`relative w-full aspect-square ${isFilled ? "tile-pop" : ""} ${celebrate ? "tile-bounce" : ""}`}
-      style={{ animationDelay: celebrate ? `${index * 100}ms` : undefined }}
+      style={{ animationDelay: celebrate ? `${index * 300}ms` : undefined }}
     >
       <div
         className={`absolute inset-0 flex items-center justify-center select-none
@@ -32,7 +32,7 @@ export function Tile({ letter, color, state, index, celebrate }: Props) {
           ${!isRevealed && isFilled ? "border-[var(--tile-border-filled)]" : ""}
           ${!isRevealed && !isFilled ? "border-[var(--tile-border)]" : ""}
         `}
-        style={{ animationDelay: isRevealed ? `${index * 100}ms` : undefined }}
+        style={{ animationDelay: isRevealed ? `${index * 300}ms` : undefined }}
       >
         {letter}
       </div>
