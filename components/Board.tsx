@@ -6,6 +6,7 @@ export type BoardRow = {
   letters: string[];
   colors: (Color | "empty")[];
   state: "empty" | "filling" | "submitted";
+  celebrate?: boolean;
 };
 
 type Props = {
@@ -26,6 +27,7 @@ export function Board({ rows, currentRow, shakeRow }: Props) {
             colors={row.colors}
             state={row.state}
             shake={shakeRow === i}
+            celebrate={row.celebrate}
           />
         );
       })}

@@ -5,6 +5,7 @@ type Props = {
   color: Color | "empty";
   state: "empty" | "filled" | "revealed";
   index: number;
+  celebrate?: boolean;
 };
 
 const colorClass: Record<Color | "empty", string> = {
@@ -14,14 +15,14 @@ const colorClass: Record<Color | "empty", string> = {
   gray: "bg-[var(--absent)] border-[var(--absent)] text-white",
 };
 
-export function Tile({ letter, color, state, index }: Props) {
+export function Tile({ letter, color, state, index, celebrate }: Props) {
   const isRevealed = state === "revealed";
   const isFilled = state === "filled";
 
   return (
     <div
-      className={`relative w-full aspect-square ${isFilled ? "tile-pop" : ""}`}
-      style={{ animationDelay: isRevealed ? `${index * 100}ms` : undefined }}
+      className={`relative w-full aspect-square ${isFilled ? "tile-pop" : ""} ${celebrate ? "tile-bounce" : ""}`}
+      style={{ animationDelay: celebrate ? `${index * 100}ms` : isRevealed ? `${index * 100}ms` : undefined }}
     >
       <div
         className={`absolute inset-0 flex items-center justify-center select-none

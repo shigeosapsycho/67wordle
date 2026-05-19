@@ -136,13 +136,17 @@ export default function Page() {
 
       let cursor = 250;
 
+      const lastIdx = sequence.length - 1;
+      const celebrateFinal = showAnswer;
+
       sequence.forEach((g, i) => {
         if (!g) {
           if (instant) cursor += ROW_STAGGER_MS;
           return;
         }
         if (instant) {
-          schedule(cursor, () => {
+          const submitAt = cursor;
+          schedule(submitAt, () => {
             setRows((prev) => {
               const next = prev.slice();
               next[i] = {
@@ -153,6 +157,15 @@ export default function Page() {
               return next;
             });
           });
+          if (celebrateFinal && i === lastIdx) {
+            schedule(submitAt + REVEAL_MS, () => {
+              setRows((prev) => {
+                const next = prev.slice();
+                if (next[i]) next[i] = { ...next[i], celebrate: true };
+                return next;
+              });
+            });
+          }
           cursor += ROW_STAGGER_MS;
         } else {
           for (let j = 1; j <= g.length; j++) {
@@ -171,7 +184,8 @@ export default function Page() {
             cursor += TYPE_LETTER_MS;
           }
           cursor += TYPE_SUBMIT_PAUSE_MS;
-          schedule(cursor, () => {
+          const submitAt = cursor;
+          schedule(submitAt, () => {
             setRows((prev) => {
               const next = prev.slice();
               next[i] = {
@@ -182,6 +196,15 @@ export default function Page() {
               return next;
             });
           });
+          if (celebrateFinal && i === lastIdx) {
+            schedule(submitAt + REVEAL_MS, () => {
+              setRows((prev) => {
+                const next = prev.slice();
+                if (next[i]) next[i] = { ...next[i], celebrate: true };
+                return next;
+              });
+            });
+          }
           cursor += REVEAL_MS + TYPE_NEXT_ROW_PAUSE_MS;
         }
       });

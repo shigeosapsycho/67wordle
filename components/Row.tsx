@@ -6,9 +6,10 @@ type Props = {
   colors: (Color | "empty")[];
   state: "empty" | "filling" | "submitted";
   shake?: boolean;
+  celebrate?: boolean;
 };
 
-export function Row({ letters, colors, state, shake }: Props) {
+export function Row({ letters, colors, state, shake, celebrate }: Props) {
   return (
     <div className={`grid grid-cols-5 gap-1.5 w-full ${shake ? "row-shake" : ""}`}>
       {[0, 1, 2, 3, 4].map((i) => {
@@ -22,6 +23,7 @@ export function Row({ letters, colors, state, shake }: Props) {
             color={colors[i] ?? "empty"}
             state={tileState}
             index={i}
+            celebrate={!!celebrate}
           />
         );
       })}
