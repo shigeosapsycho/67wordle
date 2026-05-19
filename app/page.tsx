@@ -253,9 +253,10 @@ export default function Page() {
           <button
             onClick={replay}
             disabled={!today || animating}
+            suppressHydrationWarning
             className="w-full py-3 rounded-md bg-[var(--correct)] text-white font-bold uppercase tracking-wider text-sm active:opacity-80 disabled:opacity-40"
           >
-            {animating ? "Solving…" : "Replay 67"}
+            <span suppressHydrationWarning>{animating ? "Solving…" : "Replay 67"}</span>
           </button>
           {today && !solverFoundAll && !yellowsCount && (
             <button
