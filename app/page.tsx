@@ -120,7 +120,8 @@ export default function Page() {
         );
       }
 
-      setRows(emptyBoard());
+      const localRows: BoardRow[] = emptyBoard();
+      setRows(localRows.slice());
       setAnimating(true);
 
       const sequence: (string | null)[] = result.guesses.slice();
@@ -133,6 +134,8 @@ export default function Page() {
         }, ms);
         animTimers.current.push(t);
       };
+
+      const commit = () => setRows(localRows.slice());
 
       let cursor = 250;
 
@@ -147,23 +150,20 @@ export default function Page() {
         if (instant) {
           const submitAt = cursor;
           schedule(submitAt, () => {
-            setRows((prev) => {
-              const next = prev.slice();
-              next[i] = {
-                letters: g.split(""),
-                colors: scoreGuess(g, answer),
-                state: "submitted",
-              };
-              return next;
-            });
+            localRows[i] = {
+              letters: g.split(""),
+              colors: scoreGuess(g, answer),
+              state: "submitted",
+            };
+            commit();
           });
           if (celebrateFinal && i === lastIdx) {
             schedule(submitAt + REVEAL_MS, () => {
-              setRows((prev) => {
-                const next = prev.slice();
-                if (next[i]) next[i] = { ...next[i], celebrate: true };
-                return next;
-              });
+              const row = localRows[i];
+              if (row) {
+                localRows[i] = { ...row, celebrate: true };
+                commit();
+              }
             });
           }
           cursor += ROW_STAGGER_MS;
@@ -171,38 +171,32 @@ export default function Page() {
           for (let j = 1; j <= g.length; j++) {
             const partial = g.slice(0, j).split("");
             schedule(cursor, () => {
-              setRows((prev) => {
-                const next = prev.slice();
-                next[i] = {
-                  letters: partial,
-                  colors: Array(WORD_LEN).fill("empty"),
-                  state: "filling",
-                };
-                return next;
-              });
+              localRows[i] = {
+                letters: partial,
+                colors: Array(WORD_LEN).fill("empty"),
+                state: "filling",
+              };
+              commit();
             });
             cursor += TYPE_LETTER_MS;
           }
           cursor += TYPE_SUBMIT_PAUSE_MS;
           const submitAt = cursor;
           schedule(submitAt, () => {
-            setRows((prev) => {
-              const next = prev.slice();
-              next[i] = {
-                letters: g.split(""),
-                colors: scoreGuess(g, answer),
-                state: "submitted",
-              };
-              return next;
-            });
+            localRows[i] = {
+              letters: g.split(""),
+              colors: scoreGuess(g, answer),
+              state: "submitted",
+            };
+            commit();
           });
           if (celebrateFinal && i === lastIdx) {
             schedule(submitAt + REVEAL_MS, () => {
-              setRows((prev) => {
-                const next = prev.slice();
-                if (next[i]) next[i] = { ...next[i], celebrate: true };
-                return next;
-              });
+              const row = localRows[i];
+              if (row) {
+                localRows[i] = { ...row, celebrate: true };
+                commit();
+              }
             });
           }
           cursor += REVEAL_MS + TYPE_NEXT_ROW_PAUSE_MS;
