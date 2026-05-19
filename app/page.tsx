@@ -50,6 +50,7 @@ export default function Page() {
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const runIdRef = useRef(0);
+  const revealAnswerRef = useRef(false);
 
   const showToast = useCallback((msg: string, ms = 1800) => {
     setToast(msg);
@@ -83,6 +84,7 @@ export default function Page() {
     try { localStorage.setItem("yellowsCount", yellowsCount ? "1" : "0"); } catch {}
   }, [yellowsCount]);
   useEffect(() => {
+    revealAnswerRef.current = revealAnswer;
     try { localStorage.setItem("revealAnswer", revealAnswer ? "1" : "0"); } catch {}
   }, [revealAnswer]);
   useEffect(() => {
@@ -212,11 +214,14 @@ export default function Page() {
 
   useEffect(() => {
     if (!today) return;
-    runSolution(today.solution, yellowsCount, revealAnswer, instantAnimation);
+    runSolution(today.solution, yellowsCount, revealAnswerRef.current, instantAnimation);
     return () => {
       clearAnimTimers();
     };
-  }, [today, yellowsCount, revealAnswer, instantAnimation, runSolution, clearAnimTimers]);
+    // revealAnswer intentionally excluded: toggling it should not restart
+    // the running animation; the next manual Replay picks up the new value.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [today, yellowsCount, instantAnimation, runSolution, clearAnimTimers]);
 
   const replay = useCallback(() => {
     if (!today) return;
