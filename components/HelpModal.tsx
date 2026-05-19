@@ -6,7 +6,7 @@ export function HelpModal({ open, onClose }: { open: boolean; onClose: () => voi
   return (
     <Modal open={open} onClose={onClose} title="What is this?">
       <p className="mb-4">
-        <span className="font-semibold">67 Wordle</span> takes today&apos;s real
+        <span className="font-semibold">67 Wordle </span> takes today&apos;s real
         Wordle answer and auto-plays five guesses whose colored tiles draw the
         digits <span className="font-semibold">6 7</span> across the board.
       </p>
