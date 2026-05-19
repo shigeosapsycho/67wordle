@@ -1,0 +1,40 @@
+import type { Color } from "@/lib/wordle-state";
+
+type Props = {
+  letter: string;
+  color: Color | "empty";
+  state: "empty" | "filled" | "revealed";
+  index: number;
+};
+
+const colorClass: Record<Color | "empty", string> = {
+  empty: "",
+  green: "bg-[var(--correct)] border-[var(--correct)] text-white",
+  yellow: "bg-[var(--present)] border-[var(--present)] text-white",
+  gray: "bg-[var(--absent)] border-[var(--absent)] text-white",
+};
+
+export function Tile({ letter, color, state, index }: Props) {
+  const isRevealed = state === "revealed";
+  const isFilled = state === "filled";
+
+  return (
+    <div
+      className={`relative w-full aspect-square ${isFilled ? "tile-pop" : ""}`}
+      style={{ animationDelay: isRevealed ? `${index * 100}ms` : undefined }}
+    >
+      <div
+        className={`absolute inset-0 flex items-center justify-center select-none
+          text-[clamp(1.5rem,7vw,2rem)] font-bold uppercase
+          border-2 transition-colors
+          ${isRevealed ? `tile-flip ${colorClass[color]}` : ""}
+          ${!isRevealed && isFilled ? "border-[var(--tile-border-filled)]" : ""}
+          ${!isRevealed && !isFilled ? "border-[var(--tile-border)]" : ""}
+        `}
+        style={{ animationDelay: isRevealed ? `${index * 100}ms` : undefined }}
+      >
+        {letter}
+      </div>
+    </div>
+  );
+}
