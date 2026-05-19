@@ -51,12 +51,27 @@ body { font-family: var(--font-geist-sans), system-ui, sans-serif; }
 }
 .tile-pop { animation: pop 100ms ease-in-out; }
 
-@keyframes flip {
-  0% { transform: rotateX(0); }
-  50% { transform: rotateX(90deg); }
-  100% { transform: rotateX(0); }
+@keyframes flip-green {
+  0%      { transform: rotateX(0deg);   background: transparent; color: var(--fg); border-color: var(--tile-border-filled); }
+  50%     { transform: rotateX(-90deg); background: transparent; color: var(--fg); border-color: var(--tile-border-filled); }
+  50.01%  { transform: rotateX(-90deg); background: var(--correct); color: #fff; border-color: var(--correct); }
+  100%    { transform: rotateX(0deg);   background: var(--correct); color: #fff; border-color: var(--correct); }
 }
-.tile-flip { animation: flip 600ms ease-in-out; }
+@keyframes flip-yellow {
+  0%      { transform: rotateX(0deg);   background: transparent; color: var(--fg); border-color: var(--tile-border-filled); }
+  50%     { transform: rotateX(-90deg); background: transparent; color: var(--fg); border-color: var(--tile-border-filled); }
+  50.01%  { transform: rotateX(-90deg); background: var(--present); color: #fff; border-color: var(--present); }
+  100%    { transform: rotateX(0deg);   background: var(--present); color: #fff; border-color: var(--present); }
+}
+@keyframes flip-gray {
+  0%      { transform: rotateX(0deg);   background: transparent; color: var(--fg); border-color: var(--tile-border-filled); }
+  50%     { transform: rotateX(-90deg); background: transparent; color: var(--fg); border-color: var(--tile-border-filled); }
+  50.01%  { transform: rotateX(-90deg); background: var(--absent); color: #fff; border-color: var(--absent); }
+  100%    { transform: rotateX(0deg);   background: var(--absent); color: #fff; border-color: var(--absent); }
+}
+.tile-flip-green  { animation: flip-green  500ms ease-in-out 1 forwards; }
+.tile-flip-yellow { animation: flip-yellow 500ms ease-in-out 1 forwards; }
+.tile-flip-gray   { animation: flip-gray   500ms ease-in-out 1 forwards; }
 
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
