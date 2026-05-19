@@ -105,7 +105,7 @@ export default function Page() {
   }, []);
 
   const runSolution = useCallback(
-    (answer: string, useYellows: boolean, showAnswer: boolean, instant: boolean) => {
+    (answer: string, useYellows: boolean, instant: boolean) => {
       runIdRef.current += 1;
       const myRun = runIdRef.current;
       clearAnimTimers();
@@ -126,9 +126,6 @@ export default function Page() {
       setRows(localRows.slice());
       setAnimating(true);
 
-      const sequence: (string | null)[] = result.guesses.slice();
-      if (showAnswer) sequence.push(answer);
-
       const schedule = (ms: number, fn: () => void) => {
         const t = setTimeout(() => {
           if (runIdRef.current !== myRun) return;
@@ -139,74 +136,92 @@ export default function Page() {
 
       const commit = () => setRows(localRows.slice());
 
+      const animateRow = (
+        i: number,
+        word: string,
+        startCursor: number,
+        celebrate: boolean,
+      ): number => {
+        let c = startCursor;
+        if (instant) {
+          const submitAt = c;
+          schedule(submitAt, () => {
+            localRows[i] = {
+              letters: word.split(""),
+              colors: scoreGuess(word, answer),
+              state: "submitted",
+            };
+            commit();
+          });
+          if (celebrate) {
+            schedule(submitAt + REVEAL_MS, () => {
+              const row = localRows[i];
+              if (row) {
+                localRows[i] = { ...row, celebrate: true };
+                commit();
+              }
+            });
+          }
+          return c + ROW_STAGGER_MS;
+        }
+        for (let j = 1; j <= word.length; j++) {
+          const partial = word.slice(0, j).split("");
+          schedule(c, () => {
+            localRows[i] = {
+              letters: partial,
+              colors: Array(WORD_LEN).fill("empty"),
+              state: "filling",
+            };
+            commit();
+          });
+          c += TYPE_LETTER_MS;
+        }
+        c += TYPE_SUBMIT_PAUSE_MS;
+        const submitAt = c;
+        schedule(submitAt, () => {
+          localRows[i] = {
+            letters: word.split(""),
+            colors: scoreGuess(word, answer),
+            state: "submitted",
+          };
+          commit();
+        });
+        if (celebrate) {
+          schedule(submitAt + REVEAL_MS, () => {
+            const row = localRows[i];
+            if (row) {
+              localRows[i] = { ...row, celebrate: true };
+              commit();
+            }
+          });
+        }
+        return c + REVEAL_MS + TYPE_NEXT_ROW_PAUSE_MS;
+      };
+
       let cursor = 250;
 
-      const lastIdx = sequence.length - 1;
-      const celebrateFinal = showAnswer;
-
-      sequence.forEach((g, i) => {
+      result.guesses.forEach((g, i) => {
         if (!g) {
           if (instant) cursor += ROW_STAGGER_MS;
           return;
         }
-        if (instant) {
-          const submitAt = cursor;
-          schedule(submitAt, () => {
-            localRows[i] = {
-              letters: g.split(""),
-              colors: scoreGuess(g, answer),
-              state: "submitted",
-            };
-            commit();
-          });
-          if (celebrateFinal && i === lastIdx) {
-            schedule(submitAt + REVEAL_MS, () => {
-              const row = localRows[i];
-              if (row) {
-                localRows[i] = { ...row, celebrate: true };
-                commit();
-              }
-            });
-          }
-          cursor += ROW_STAGGER_MS;
-        } else {
-          for (let j = 1; j <= g.length; j++) {
-            const partial = g.slice(0, j).split("");
-            schedule(cursor, () => {
-              localRows[i] = {
-                letters: partial,
-                colors: Array(WORD_LEN).fill("empty"),
-                state: "filling",
-              };
-              commit();
-            });
-            cursor += TYPE_LETTER_MS;
-          }
-          cursor += TYPE_SUBMIT_PAUSE_MS;
-          const submitAt = cursor;
-          schedule(submitAt, () => {
-            localRows[i] = {
-              letters: g.split(""),
-              colors: scoreGuess(g, answer),
-              state: "submitted",
-            };
-            commit();
-          });
-          if (celebrateFinal && i === lastIdx) {
-            schedule(submitAt + REVEAL_MS, () => {
-              const row = localRows[i];
-              if (row) {
-                localRows[i] = { ...row, celebrate: true };
-                commit();
-              }
-            });
-          }
-          cursor += REVEAL_MS + TYPE_NEXT_ROW_PAUSE_MS;
-        }
+        cursor = animateRow(i, g, cursor, false);
       });
 
+      // End-of-guesses checkpoint. Decide at fire-time whether to also
+      // play the answer row so toggling "Show answer at end" mid-animation
+      // takes effect for the current run.
+      const answerRowIdx = result.guesses.length; // row 5
       schedule(cursor + (instant ? REVEAL_MS : 0), () => {
-        setAnimating(false);
+        if (revealAnswerRef.current) {
+          // Schedule the answer row relative to NOW (this callback's fire time).
+          const after = animateRow(answerRowIdx, answer, 0, true);
+          schedule(after + (instant ? REVEAL_MS : 0), () => {
+            setAnimating(false);
+          });
+        } else {
+          setAnimating(false);
+        }
       });
     },
     [clearAnimTimers, showToast],
@@ -214,19 +229,16 @@ export default function Page() {
 
   useEffect(() => {
     if (!today) return;
-    runSolution(today.solution, yellowsCount, revealAnswerRef.current, instantAnimation);
+    runSolution(today.solution, yellowsCount, instantAnimation);
     return () => {
       clearAnimTimers();
     };
-    // revealAnswer intentionally excluded: toggling it should not restart
-    // the running animation; the next manual Replay picks up the new value.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [today, yellowsCount, instantAnimation, runSolution, clearAnimTimers]);
 
   const replay = useCallback(() => {
     if (!today) return;
-    runSolution(today.solution, yellowsCount, revealAnswer, instantAnimation);
-  }, [today, yellowsCount, revealAnswer, instantAnimation, runSolution]);
+    runSolution(today.solution, yellowsCount, instantAnimation);
+  }, [today, yellowsCount, instantAnimation, runSolution]);
 
   const onHelpClose = useCallback(() => {
     setShowHelp(false);
