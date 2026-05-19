@@ -11,6 +11,8 @@ type Props = {
   setYellowsCount: (v: boolean) => void;
   revealAnswer: boolean;
   setRevealAnswer: (v: boolean) => void;
+  instantAnimation: boolean;
+  setInstantAnimation: (v: boolean) => void;
 };
 
 function Toggle({
@@ -47,6 +49,7 @@ function Toggle({
 
 export function SettingsModal({
   open, onClose, dark, setDark, yellowsCount, setYellowsCount, revealAnswer, setRevealAnswer,
+  instantAnimation, setInstantAnimation,
 }: Props) {
   return (
     <Modal open={open} onClose={onClose} title="Settings">
@@ -62,6 +65,12 @@ export function SettingsModal({
         description="After the 5 pattern guesses, play the real Wordle answer as a final all-green row."
         value={revealAnswer}
         onChange={setRevealAnswer}
+      />
+      <Toggle
+        label="Instant animation"
+        description="On: each word appears in full, then flips. Off: letters are typed one at a time and 'Enter' is pressed, like a real player."
+        value={instantAnimation}
+        onChange={setInstantAnimation}
       />
     </Modal>
   );

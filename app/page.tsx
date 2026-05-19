@@ -18,6 +18,9 @@ const emptyBoard = (): BoardRow[] => Array.from({ length: WORDLE_ROWS }, emptyRo
 
 const REVEAL_MS = 1700;
 const ROW_STAGGER_MS = 1200;
+const TYPE_LETTER_MS = 110;
+const TYPE_SUBMIT_PAUSE_MS = 280;
+const TYPE_NEXT_ROW_PAUSE_MS = 220;
 
 type ApiResponse = {
   solution: string;
@@ -42,6 +45,7 @@ export default function Page() {
   const [dark, setDark] = useState(false);
   const [yellowsCount, setYellowsCount] = useState(true);
   const [revealAnswer, setRevealAnswer] = useState(false);
+  const [instantAnimation, setInstantAnimation] = useState(true);
 
   const toastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const animTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -63,6 +67,8 @@ export default function Page() {
       const yc = localStorage.getItem("yellowsCount");
       setYellowsCount(yc === null ? true : yc === "1");
       setRevealAnswer(localStorage.getItem("revealAnswer") === "1");
+      const ia = localStorage.getItem("instantAnimation");
+      setInstantAnimation(ia === null ? true : ia === "1");
     } catch {}
     try {
       setShowHelp(!localStorage.getItem("seenHelp"));
@@ -79,6 +85,9 @@ export default function Page() {
   useEffect(() => {
     try { localStorage.setItem("revealAnswer", revealAnswer ? "1" : "0"); } catch {}
   }, [revealAnswer]);
+  useEffect(() => {
+    try { localStorage.setItem("instantAnimation", instantAnimation ? "1" : "0"); } catch {}
+  }, [instantAnimation]);
 
   useEffect(() => {
     const date = localDateISO();
@@ -94,7 +103,7 @@ export default function Page() {
   }, []);
 
   const runSolution = useCallback(
-    (answer: string, useYellows: boolean, showAnswer: boolean) => {
+    (answer: string, useYellows: boolean, showAnswer: boolean, instant: boolean) => {
       runIdRef.current += 1;
       const myRun = runIdRef.current;
       clearAnimTimers();
@@ -117,47 +126,85 @@ export default function Page() {
       const sequence: (string | null)[] = result.guesses.slice();
       if (showAnswer) sequence.push(answer);
 
-      let delay = 250;
-      sequence.forEach((g, i) => {
+      const schedule = (ms: number, fn: () => void) => {
         const t = setTimeout(() => {
           if (runIdRef.current !== myRun) return;
-          setRows((prev) => {
-            const next = prev.slice();
-            if (g) {
+          fn();
+        }, ms);
+        animTimers.current.push(t);
+      };
+
+      let cursor = 250;
+
+      sequence.forEach((g, i) => {
+        if (!g) {
+          if (instant) cursor += ROW_STAGGER_MS;
+          return;
+        }
+        if (instant) {
+          schedule(cursor, () => {
+            setRows((prev) => {
+              const next = prev.slice();
               next[i] = {
                 letters: g.split(""),
                 colors: scoreGuess(g, answer),
                 state: "submitted",
               };
-            }
-            return next;
+              return next;
+            });
           });
-        }, delay);
-        animTimers.current.push(t);
-        delay += ROW_STAGGER_MS;
+          cursor += ROW_STAGGER_MS;
+        } else {
+          for (let j = 1; j <= g.length; j++) {
+            const partial = g.slice(0, j).split("");
+            schedule(cursor, () => {
+              setRows((prev) => {
+                const next = prev.slice();
+                next[i] = {
+                  letters: partial,
+                  colors: Array(WORD_LEN).fill("empty"),
+                  state: "filling",
+                };
+                return next;
+              });
+            });
+            cursor += TYPE_LETTER_MS;
+          }
+          cursor += TYPE_SUBMIT_PAUSE_MS;
+          schedule(cursor, () => {
+            setRows((prev) => {
+              const next = prev.slice();
+              next[i] = {
+                letters: g.split(""),
+                colors: scoreGuess(g, answer),
+                state: "submitted",
+              };
+              return next;
+            });
+          });
+          cursor += REVEAL_MS + TYPE_NEXT_ROW_PAUSE_MS;
+        }
       });
 
-      const done = setTimeout(() => {
-        if (runIdRef.current !== myRun) return;
+      schedule(cursor + (instant ? REVEAL_MS : 0), () => {
         setAnimating(false);
-      }, delay + REVEAL_MS);
-      animTimers.current.push(done);
+      });
     },
     [clearAnimTimers, showToast],
   );
 
   useEffect(() => {
     if (!today) return;
-    runSolution(today.solution, yellowsCount, revealAnswer);
+    runSolution(today.solution, yellowsCount, revealAnswer, instantAnimation);
     return () => {
       clearAnimTimers();
     };
-  }, [today, yellowsCount, revealAnswer, runSolution, clearAnimTimers]);
+  }, [today, yellowsCount, revealAnswer, instantAnimation, runSolution, clearAnimTimers]);
 
   const replay = useCallback(() => {
     if (!today) return;
-    runSolution(today.solution, yellowsCount, revealAnswer);
-  }, [today, yellowsCount, revealAnswer, runSolution]);
+    runSolution(today.solution, yellowsCount, revealAnswer, instantAnimation);
+  }, [today, yellowsCount, revealAnswer, instantAnimation, runSolution]);
 
   const onHelpClose = useCallback(() => {
     setShowHelp(false);
@@ -217,6 +264,8 @@ export default function Page() {
         setYellowsCount={setYellowsCount}
         revealAnswer={revealAnswer}
         setRevealAnswer={setRevealAnswer}
+        instantAnimation={instantAnimation}
+        setInstantAnimation={setInstantAnimation}
       />
       <Modal open={showInfo} onClose={() => setShowInfo(false)} title="Today">
         {today && (
